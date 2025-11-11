@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>KẾT QUẢ TEST</title>
+  <style>
+    /* Common styles */
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f7fa; }
+    .container { padding: 20px; }
+    .tab-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
+    .tab-buttons button {
+      padding: 10px 20px; border: none; border-radius: 6px;
+      background: #34495e; color: #fff; cursor: pointer;
+    }
+    .tab-buttons button.active { background: #27ae60; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    /* Tab 1: Phán định sản phẩm */
+    .app-container { display: flex; flex-direction: row; }
+    .left, .right { padding: 20px; overflow-y: auto; }
+    .left { width: 40%; border-right: 2px solid #ccc; position: relative; }
+    .right { width: 60%; }
+    label { font-weight: bold; display: block; margin: 10px 0 5px; }
+    input, select { padding: 5px; width: 200px; margin-bottom: 10px; }
+    button { padding: 8px 16px; margin: 6px; border-radius: 6px; border: 1px solid #333; font-size: 14px; cursor: pointer; }
+    #okBtn { color: green; }
+    #ngBtn { color: red; }
+    #error { color: red; font-weight: bold; margin-top: 10px; }
+    table { margin-top: 10px; border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+    th { background: #eee; }
+    .duplicate { background-color: #ffb3b3; }
+    #loginScreen { margin-top: 50px; text-align: center; }
+    .mainApp { display: none; }
+    #clearLogBtn, #resetDataBtn { position: absolute; top: 12px; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; }
+    #clearLogBtn { right: 120px; background: #3498db; color: white; }
+    #clearLogBtn:hover { background: #2980b9; }
+    #resetDataBtn { right: 12px; background: #e74c3c; color: white; }
+    #resetDataBtn:hover { background: #c0392b; }
+    .stat { margin-top: 8px; font-size: 14px; }
+    
+    /* Tab 2: Lọc dữ liệu */
+    .filter-container { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
+    .filter-item { display: flex; flex-direction: column; }
+    .filter-item label { font-size: 13px; color: #555; margin-bottom: 4px; }
+    .filter-item input, .filter-item select {
+      padding: 8px 10px; border-radius: 6px; border: 1px solid #ccc; min-width: 150px; background: #fff;
+    }
+    .button-container { display: flex; gap: 10px; margin-bottom: 20px; }
+    .btn-filter {
+      background: #34495e; color: #fff; padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer;
+    }
+    .btn-filter:hover { background: #2c3e50; }
+    .btn-download {
+      background: #27ae60; color: #fff; padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer;
+    }
+    .btn-download:hover { background: #1e874b; }
+    
+    /* Tab 3: Biểu đồ */
+    .chart-container { margin-bottom: 30px; }
+    .chart-container h3 { margin-bottom: 10px; }
+    canvas { max-width: 100%; background: white; border: 1px solid #ddd; border-radius: 4px; padding: 10px; }
+    
+    /* Thêm style cho thông báo */
+    .sync-status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      display: none;
+    }
+    .sync-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .sync-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clusterize.js@0.18.1/clusterize.min.js"></script>
+</head>
+<body>
+     <div style="margin-top:20px; display:flex; gap:10px; ">
+      <img src="logo.png" alt="Logo" style="height: 100px; width: auto; margin-right: 20px;">
+      <h2>📊 KẾT QUẢ TEST</h2>
+      </div>
+     </div>
+
+    <div class="tab-buttons">
+      <button id="btnTab1" class="active" onclick="showTab(1)">📝 Phán định sản phẩm</button>
+      <button id="btnTab2" onclick="showTab(2)">📑 Dữ liệu</button>
+      <button id="btnTab3" onclick="showTab(3)">📈 Biểu đồ</button>
+    </div>
+    
+    <!-- Tab 1: Phán định sản phẩm -->
+    <div id="tab1" class="tab-content active">
+      <!-- Màn hình đăng nhập -->
+      <div id="loginScreen">
+        <h2>Đăng nhập</h2>
+        <label for="loginUser">Tên đăng nhập</label>
+        <input type="text" id="loginUser" placeholder="Nhập mã số nhân viên">
+
+        <label for="loginPass">Mật khẩu</label>
+        <input type="password" id="loginPass" placeholder="Nhập mật khẩu">
+
+        <label for="shift">Chọn ca</label>
+        <select id="shift">
+          <option value="Ca 1 (06:00-14:00)">Ca 1 (06:00 - 14:00)</option>
+          <option value="Ca 2 (14:00-22:00)">Ca 2 (14:00 - 22:00)</option>
+          <option value="Ca 1 dài (06:00-18:00)">Ca 1 dài (06:00 - 18:00)</option>
+          <option value="Ca 2 dài (18:00-06:00)">Ca 2 dài (18:00 - 06:00 hôm sau)</option>
+          <option value="Ca HC (08:00-16:30)">Ca HC (08:00 - 16:30)</option>
+        </select>
+
+        <label for="wo">Số lệnh sản xuất (WO)</label>
+        <input type="text" id="wo" placeholder="Nhập số WO" oninput="this.value=this.value.toUpperCase()">
+
+        <br>
+        <button onclick="login()">Đăng nhập</button>
+        <p id="loginError" style="color:red;"></p>
+      </div>
+
+      <!-- Giao diện chính -->
+      <div id="mainApp" class="mainApp app-container">
+        <!-- Cột trái -->
+        <div class="left">
+          <h2>Phán định sản phẩm</h2>
+          <button id="clearLogBtn" onclick="clearLogDisplay()">Xóa log</button>
+          <button id="resetDataBtn" onclick="resetAllData()">Reset dữ liệu</button>
+
+          <p class="stat">👤 Người kiểm tra: <b id="currentUser"></b></p>
+          <p class="stat">🕒 Ca: <b id="currentShift"></b></p>
+          <p class="stat">📋 WO: <b id="currentWO"></b></p>
+          <p class="stat">✅ OK: <b id="okCount">0</b> | ❌ NG: <b id="ngCount">0</b></p>
+
+          <label for="deliveryQty"><b>SỐ LƯỢNG GIAO</b></label>
+          <input type="number" id="deliveryQty" value="0" min="0" style="width:150px;">
+          <p id="deliveryStatus" style="color:blue;font-weight:bold;"></p>
+
+          <label for="mahang">Mã hàng</label>
+          <select id="mahang" onchange="updateQRCodeMaxLength()">
+          <option value="">-- Chọn mã hàng --</option>
+            <option value="ECM-2583-236">ECM-2583-236</option>
+            <option value="ECM-2583-164">ECM-2583-164</option>
+            <option value="ECM-2300">ECM-2300</option>
+            <option value="ECM-2310">ECM-2310</option>
+            <option value="IZ-1-R3">IZ-1-R3</option>
+            <option value="RM-4K-R3">RM-4K-R3</option>
+            <option value="AM-4-R3">AM-4-R3</option>
+            <option value="P-7937">P-7937</option>
+            <option value="P-8105">P-8105</option>
+            <option value="P-8149">P-8149</option>
+            <option value="BMS 85AH">BMS 85AH</option>
+            <option value="BMS 57AH">BMS 57AH</option>
+            <option value="CONTROLLER">CONTROLLER</option>
+            <option value="CAS NEMO">CAS NEMO</option>
+            <option value="CAS MINI-DI">CAS MINI-DI</option>
+            <option value="CAS MINI-485">CAS MINI-485</option>
+            <option value="BN 2573A">BN 2573A</option>
+            <option value="OEM">OEM</option>
+            
+          </select>
+          <p id="qrcodeLengthInfo" style="font-size: 12px; color: #666; margin-top: -5px; margin-bottom: 10px;"></p>
+          <label for="qrcode">QR Code</label>
+          <input type="text" id="qrcode" placeholder="Quét QR code" oninput="this.value=this.value.toUpperCase()">
+
+          <label for="loi">Lỗi / Ghi chú</label>
+          <div style="display: flex; gap: 10px;">
+            <input list="errorList" id="loi" placeholder="Nhập lỗi (nếu có)">
+            <input type="text" id="ghichu" placeholder="Nhập ghi chú (nếu có)">
+          </div>
+          <datalist id="errorList">
+            <option value="ÁP CAO">ÁP CAO</option>
+            <option value="ÁP THẤP">ÁP THẤP</option>
+            <option value="HALL SENSOR">HALL SENSOR</option>
+            <option value="R CAO">R CAO</option>
+            <option value="LAMDA FAIL">LAMDA FAIL</option>
+            <option value="KHÔNG NẠP ĐƯỢC CODE">KHÔNG NẠP ĐƯỢC CODE</option>
+            <option value="KHÔNG KẾT NỐI ĐƯỢC VỚI MÁY TÍNH">KHÔNG KẾT NỐI ĐƯỢC VỚI MÁY TÍNH</option>
+            <option value="VĂN TAY GA KHÔNG LÊN">VĂN TAY GA KHÔNG LÊN</option>
+            <option value="NỔ TỤ NHỎ">NỔ TỤ NHỎ</option>
+            <option value="DÒNG CAO">DÒNG CAO</option>
+            <option value="V DISCHARGE THẤP">V DISCHARGE THẤP</option>
+            <option value="V CHARGE THÂP">V CHARGE THÂP</option>
+            <option value="V > 30V">V > 30V</option>
+            <option value="Lỗi 3M">Lỗi 3M</option>
+            <option value="C13,C14">C13,C14</option>
+            <option value="C5,C6">C5,C6</option>
+            <option value="C12,C13">C12,C13</option>
+            <option value="C23">C23</option>
+            <option value="NTC1">NTC1</option>
+            <option value="NTC2">NTC2</option>
+            <option value="TOP AFE">TOP AFE</option>
+          </datalist>
+
+          <div>
+            <button id="okBtn" onclick="saveData('OK')">OK</button>
+            <button id="ngBtn" onclick="saveData('NG')">NG</button>
+          </div>
+        
+          <p id="error"></p>
+
+          <!-- Thêm thông báo trạng thái đồng bộ -->
+          <div id="syncStatus" class="sync-status"></div>
+
+          <div>
+            <button onclick="exportCSV()">Xuất logfile</button>
+            <button onclick="syncToSheet()">Đồng bộ Google Sheets</button>
+            <button onclick="endShiftReport()">Báo cáo cuối ca</button>
+          </div>
+
+          <!-- Biểu đồ realtime -->
+          <div>
+            <h3>Báo cáo real-time</h3>
+            <div style="width: 200px; height: 200px;">
+              <canvas id="chartOKNG"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột phải -->
+        <div class="right">
+          <!-- Bộ lọc -->
+          <div>
+            <input type="text" id="searchBox" placeholder="Tìm QR / Mã hàng" onkeyup="renderTable()">
+            <select id="filterResult" onchange="renderTable()">
+              <option value="">--Tất cả--</option>
+              <option value="OK">OK</option>
+              <option value="NG">NG</option>
+            </select>
+          </div>
+          <table id="logTable">
+            <thead>
+              <tr>
+                <th>Mã hàng</th>
+                <th>QR Code</th>
+                <th>Phân định</th>
+                <th>Mô tả lỗi</th>
+                <th>Ngày</th>
+                <th>Giờ</th>
+                <th>Số lần xuất hiện</th>
+                <th>Mã nhân viên</th>
+                <th>Shift</th>
+                <th>PO</th>
+                <th>Ghi chú</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tab 2: Dữ liệu -->
+    <div id="tab2" class="tab-content">
+      <div class="filter-container">
+        <div class="filter-item">
+          <label for="fromDate">Từ ngày</label>
+          <input type="date" id="fromDate">
+        </div>
+        <div class="filter-item">
+          <label for="toDate">Đến ngày</label>
+          <input type="date" id="toDate">
+        </div>
+        <div class="filter-item">
+          <label for="maSP">Mã sản phẩm</label>
+          <select id="maSP"><option value="">Tất cả mã</option></select>
+        </div>
+        <div class="filter-item">
+          <label for="searchQR">Tìm QR Code</label>
+          <input type="text" id="searchQR" placeholder="Nhập QR Code để lọc..." oninput="applyFilters()">
+        </div>
+        <div class="filter-item">
+          <label for="po">PO</label>
+          <select id="po"><option value="">Tất cả PO</option></select>
+        </div>
+      </div>
+
+      <div class="button-container">
+        <button class="btn-filter" onclick="applyFilters()">Lọc dữ liệu</button>
+        <button class="btn-download" onclick="reloadFromGoogle()">⭮ Tải từ Google Sheets</button>
+      </div>
+
+      <div id="scrollArea" style="height:500px; overflow:auto; border:1px solid #ccc;">
+        <table id="reportTable" style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th>Mã Hàng</th>
+              <th>QR Code</th>
+              <th>Phán định</th>
+              <th>Mô tả lỗi</th>
+              <th>Giờ</th>
+              <th>Ngày</th>
+              <th>Số lần xuất hiện</th>
+              <th>Mã nhân viên</th>
+              <th>Ca</th>
+              <th>PO</th>
+              <th>Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody id="clusterize-content" class="clusterize-content"></tbody>
+        </table>
+
+        <!-- ✅ Bắt buộc phải nằm TRONG scrollArea, ngay dưới bảng -->
+        <div id="clusterize-scroll" class="clusterize-scroll"></div>
+      </div>
+
+      <!-- Dòng này nằm ngoài để hiển thị tổng số dòng -->
+      <div id="recordCount" style="margin-top:5px; font-weight:bold;"></div>
+    </div>
+      
+    <!-- Tab 3: Biểu đồ -->
+    <div id="tab3" class="tab-content">
+      <div class="chart-container">
+        <h3>📊 Biểu đồ Pareto (theo Mô tả lỗi)</h3>
+        <div style="height: 400px;">
+          <canvas id="paretoChart"></canvas>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <h3>📈 Biểu đồ so sánh theo ngày</h3>
+        <div style="height: 400px;">
+          <canvas id="dailyChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== HÀM QUẢN LÝ TAB =====
+    function showTab(n) {
+      document.querySelectorAll('.tab-buttons button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.getElementById('btnTab' + n).classList.add('active');
+      document.getElementById('tab' + n).classList.add('active');
+      
+      // 🔥 THÊM: Khi chuyển sang tab 3, vẽ biểu đồ với dữ liệu hiện tại
+      if (n === 3) {
+        setTimeout(() => {
+          const dataToUse = filteredDataGlobal.length > 0 ? filteredDataGlobal : allData;
+          drawPareto(dataToUse);
+          drawDailyChart(dataToUse);
+        }, 100);
+      }
+      
+      // ✅ Chỉ tải lại từ Google khi người dùng thật sự bấm nút "Tải từ Google Sheets"
+      if (n === 2 && !window.preventAutoReload) {
+        reloadFromGoogle();
+      }
+    }
+
+    // ===== PHẦN PHÁN ĐỊNH SẢN PHẨM =====
+    /* ===== Data & users ===== */
+    const users = {
+      "5035": "123456",
+      "5624": "562411", // THANH
+      "5814": "241012", // THƯƠNG
+      "4549": "130417", // HÒA
+      "5372": "537211", // KHÁNH
+      "5171": "517111", // NGA
+      "5651": "565111", // CHAU
+      "5531": "553111", // GIANG
+      "5019": "501911", // GIANG
+    };
+    // Quy định số ký tự tối đa cho từng mã hàng
+      const maxLengthByProduct = {
+   "ECM-2583-236": 20,
+  "ECM-2583-164": 20,
+  "ECM-2300": 15,
+  "ECM-2310": 15,
+  "IZ-1-R3": 48,
+  "RM-4K-R3": 48,
+  "AM-4-R3": 48,
+  "P-7937": 15,
+  "P-8105": 15,
+  "P-8149": 15,
+  "BMS 85AH": 22,
+  "BMS 57AH": 22,
+  "CONTROLLER": 22,
+  "CAS NEMO": 12,
+  "CAS MINI-DI": 15,
+  "CAS MINI-485": 15,
+  "BN 2573A": 12,
+  "OEM": 20
+    };
+    // records[0] là header
+    let records = [["Mã hàng","QR Code","Kết quả","Lỗi","Giờ","Ngày","Số lần xuất hiện","Người kiểm tra","Ca","WO","Ghi chú","Synced"]];
+    let qrCounter = {};
+    let currentUser = "";
+    let currentShift = "";
+    let currentWO = "";
+    let okCount = 0, ngCount = 0;
+    let chart;
+
+    let deliveryTarget = 0;    // số lượng giao cần đạt
+    let deliveryCounter = 0;   // số QR code đã quét trong đợt
+
+    // Load từ localStorage
+    if (localStorage.getItem("records")) {
+      try { 
+        const savedRecords = JSON.parse(localStorage.getItem("records"));
+        if (Array.isArray(savedRecords) && savedRecords.length > 0) {
+          records = savedRecords;
+        }
+      } catch(e) { 
+        console.error("Lỗi khi load records từ localStorage:", e);
+      }
+    }
+    
+    if (localStorage.getItem("qrCounter")) {
+      try { 
+        qrCounter = JSON.parse(localStorage.getItem("qrCounter")); 
+      } catch(e) { 
+        console.error("Lỗi khi load qrCounter từ localStorage:", e);
+      }
+    }
+
+    /* ===== Utility ===== */
+    function findLastRecordIndex(qrcode) {
+      for (let i = records.length - 1; i >= 1; i--) {
+        if (records[i][1] === qrcode) return i;
+      }
+      return -1;
+    }
+
+  function updateQRCodeMaxLength() {
+  const mahang = document.getElementById("mahang").value;
+  const infoElement = document.getElementById("qrcodeLengthInfo");
+  
+  if (mahang && maxLengthByProduct[mahang]) {
+    const maxLength = maxLengthByProduct[mahang];
+    infoElement.textContent = `QR Code tối đa ${maxLength} ký tự`;
+    infoElement.style.color = "#27ae60";
+  } else {
+    infoElement.textContent = "";
+  }
+ }
+    function recomputeCountsForShift(shift) {
+  let ok = 0, ng = 0;
+  
+  // Lấy kết quả mới nhất cho mỗi QR code
+  const latestResults = {};
+  
+  for (let i = 1; i < records.length; i++) {
+    const row = records[i];
+    if (row[8] === shift) {
+      const qrcode = row[1];
+      // Chỉ lấy kết quả mới nhất cho mỗi QR code
+      if (!latestResults[qrcode] || i > latestResults[qrcode].index) {
+        latestResults[qrcode] = {
+          result: row[2],
+          index: i
+        };
+      }
+    }
+  }
+  
+  // Đếm counts từ kết quả mới nhất
+  for (const qrcode in latestResults) {
+    if (latestResults[qrcode].result === "OK") ok++;
+    else if (latestResults[qrcode].result === "NG") ng++;
+  }
+  
+  okCount = ok; 
+  ngCount = ng;
+  document.getElementById("okCount").textContent = okCount;
+  document.getElementById("ngCount").textContent = ngCount;
+  updateChart();
+}
+
+    /* ===== Login ===== */
+    function login() {
+      const uRaw = document.getElementById("loginUser").value.trim();
+      const p = document.getElementById("loginPass").value.trim();
+      const s = document.getElementById("shift").value;
+      const wo = document.getElementById("wo").value.trim();
+      
+      if (!uRaw || !wo) { 
+        document.getElementById("loginError").textContent = "⚠️ Vui lòng nhập đầy đủ!"; 
+        return; 
+      }
+      
+      const u = uRaw.toUpperCase();
+      if (users[u] && users[u] === p) {
+        currentUser = u;
+        currentShift = s;
+        currentWO = wo;
+        document.getElementById("currentUser").textContent = currentUser;
+        document.getElementById("currentShift").textContent = currentShift;
+        document.getElementById("currentWO").textContent = currentWO;
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("mainApp").style.display = "flex";
+        recomputeCountsForShift(currentShift);
+        renderTable();
+      } else {
+        document.getElementById("loginError").textContent = "⚠️ Sai tên đăng nhập hoặc mật khẩu!";
+      }
+    }
+
+    /* ===== Save / Update log ===== */
+    function saveData(result) {
+      // 🔹 Kiểm tra số lượng giao
+      if (deliveryTarget === 0) {
+        alert("⚠️ Vui lòng nhập SỐ LƯỢNG GIAO trước khi quét!");
+        return;
+      }
+
+      if (deliveryCounter >= deliveryTarget) {
+        alert("⚠️ Đã đủ số lượng giao, không thể quét thêm!");
+        return;
+      }
+
+      const mahang = document.getElementById("mahang").value.trim().toUpperCase();
+      const qrcode = document.getElementById("qrcode").value.trim().toUpperCase();
+      const loi = document.getElementById("loi").value.trim();
+      const ghichu = document.getElementById("ghichu").value.trim();
+
+      if (!mahang || !qrcode) {
+        document.getElementById("error").textContent = "⚠️ Vui lòng nhập Mã hàng và QR Code!";
+        return;
+      }
+      
+     // 🔹 KIỂM TRA SỐ KÝ TỰ THEO MÃ HÀNG
+    const maxLength = maxLengthByProduct[mahang];
+    if (maxLength && qrcode.length > maxLength) {
+      alert(`⚠️ QR Code cho mã hàng ${mahang} vượt quá ${maxLength} ký tự! Vui lòng quét lại!`);
+      document.getElementById("qrcode").value = "";
+      document.getElementById("qrcode").focus();
+      return;
+    }
+      document.getElementById("error").textContent = "";
+
+      qrCounter[qrcode] = (qrCounter[qrcode] || 0) + 1;
+      const now = new Date();
+      const gio = now.toLocaleTimeString("vi-VN");
+      const ngay = now.toLocaleDateString("vi-VN");
+
+      // 🔹 THAY ĐỔI: Luôn thêm bản ghi mới, không xóa bản ghi cũ
+      // Tìm tất cả bản ghi cũ để cập nhật counts
+      let oldOkCount = 0, oldNgCount = 0;
+      for (let i = 1; i < records.length; i++) {
+        if (records[i][1] === qrcode) {
+          if (records[i][2] === "OK") oldOkCount++;
+          else if (records[i][2] === "NG") oldNgCount++;
+        }
+      }
+
+      // Cập nhật counts (trừ đi counts cũ, cộng thêm counts mới)
+      okCount = okCount - oldOkCount;
+      ngCount = ngCount - oldNgCount;
+      
+      if (result === "OK") okCount++;
+      else ngCount++;
+
+      // 🔹 THAY ĐỔI: Luôn thêm bản ghi mới (không xóa bản ghi cũ)
+      records.push([
+      mahang,
+      qrcode,
+      result,
+      loi,
+      gio,
+      ngay,
+      qrCounter[qrcode],
+      currentUser,
+      currentShift,
+      currentWO,
+      ghichu,
+      false // 🔹 chưa đồng bộ
+      ]);
+
+      saveLocal();
+      renderTable();
+      document.getElementById("okCount").textContent = okCount;
+      document.getElementById("ngCount").textContent = ngCount;
+      updateChart();
+
+      document.getElementById("qrcode").value = "";
+      document.getElementById("loi").value = "";
+      document.getElementById("ghichu").value = "";
+      
+      deliveryCounter++;
+      document.getElementById("deliveryStatus").textContent = `Đã quét ${deliveryCounter}/${deliveryTarget}`;
+
+      if (deliveryCounter >= deliveryTarget) {
+        alert(`✅ Đã đủ ${deliveryTarget} sản phẩm!`);
+        document.getElementById("deliveryQty").value = 0;
+        deliveryTarget = 0;
+        deliveryCounter = 0;
+        document.getElementById("deliveryStatus").textContent = "";
+      }
+
+      // Tự động focus vào ô QR code
+      const qEl = document.getElementById("qrcode");
+      if (qEl) {
+        qEl.focus();
+        qEl.select();
+      }
+      syncToSheet();
+    }
+    /* ===== Render bảng ===== */
+function renderTable() {
+  const tbody = document.getElementById("logTable").getElementsByTagName("tbody")[0];
+  tbody.innerHTML = "";
+
+  const search = document.getElementById("searchBox").value.toLowerCase();
+  const filterRes = document.getElementById("filterResult").value;
+
+  // 🔹 Duyệt ngược để bản ghi mới nhất hiển thị trên đầu
+  for (let i = records.length - 1; i >= 1; i--) {
+    const rowData = records[i];
+    
+    if (search && !rowData[0].toLowerCase().includes(search) && !rowData[1].toLowerCase().includes(search)) continue;
+    if (filterRes && rowData[2] !== filterRes) continue;
+
+    const tr = tbody.insertRow();
+    
+    // 🔹 THAY ĐỔI: Xác định màu nền theo kết quả
+    let bgColor = "white";
+    if (rowData[2] === "NG") {
+      bgColor = "red";   // đỏ tươi cho NG
+    } else if (rowData[2] === "OK") {
+      // Kiểm tra nếu đây là bản ghi OK sau khi đã có NG
+      const hasPreviousNG = checkIfHasPreviousNG(rowData[1], i);
+      if (hasPreviousNG) {
+        bgColor = "#27ae60"; // Xanh nhạt cho OK sau NG
+      } else {
+        bgColor = "white"; // Trắng cho OK thông thường
+      }
+    }
+    tr.style.backgroundColor = bgColor;
+
+    // Tạo 11 cột dữ liệu
+    for (let j = 0; j < 11; j++) {
+      const td = tr.insertCell();
+      td.textContent = rowData[j] || "";
+    }
+
+    // Thêm cột nút xóa (cột thứ 12)
+    const tdDel = tr.insertCell();
+    const btn = document.createElement("button");
+    btn.textContent = "Xóa";
+    btn.style.background = "#e74c3c";
+    btn.style.color = "white";
+    btn.style.border = "none";
+    btn.style.padding = "4px 8px";
+    btn.style.borderRadius = "4px";
+    btn.onclick = () => deleteRecord(i);
+    tdDel.appendChild(btn);
+
+    if ((rowData[6] || 0) > 1) tr.classList.add("duplicate");
+  }
+}
+
+// 🔹 THÊM HÀM MỚI: Kiểm tra nếu QR code này đã có bản ghi NG trước đó
+function checkIfHasPreviousNG(qrcode, currentIndex) {
+  for (let i = currentIndex - 1; i >= 1; i--) {
+    if (records[i][1] === qrcode && records[i][2] === "NG") {
+      return true;
+    }
+  }
+  return false;
+}
+    /* ===== Lưu local ===== */
+    function saveLocal() {
+      try {
+        localStorage.setItem("records", JSON.stringify(records));
+        localStorage.setItem("qrCounter", JSON.stringify(qrCounter));
+      } catch(e) { 
+        console.warn("Lưu localStorage thất bại:", e); 
+      }
+    }
+
+    /* ===== Xuất CSV ===== */
+    function exportCSV() {
+      if (!currentShift || !currentWO) {
+        alert("⚠️ Vui lòng đăng nhập và chọn ca + WO trước khi xuất file!");
+        return;
+      }
+
+      let mahang = document.getElementById("mahang").value.trim();
+      if (!mahang) { 
+        alert("⚠️ Vui lòng nhập mã hàng trước khi xuất file!"); 
+        return; 
+      }
+
+      let filteredRecords = [["Mã hàng","QR Code","Kết quả","Lỗi","Giờ","Ngày","Số lần xuất hiện","Người kiểm tra","Ca","WO","Ghi chú"]];
+      for (let i = 1; i < records.length; i++) {
+        if (records[i][8] === currentShift && records[i][9] === currentWO) {
+          filteredRecords.push(records[i]);
+        }
+      }
+
+      if (filteredRecords.length <= 1) {
+        alert("⚠️ Không có dữ liệu nào cho ca này!");
+        return;
+      }
+
+      let now = new Date();
+      let filename = `${mahang}_${currentShift.replace(/\s+/g, "_")}_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.csv`;
+
+      let csvContent = "\uFEFF" + filteredRecords.map(e => e.join(",")).join("\n");
+      let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      let link = document.createElement("a");
+      if (link.download !== undefined) {
+        let url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
+
+    /* ===== Sync Google Sheets ===== */
+    function syncToSheet() {
+      const sheetUrl = "https://script.google.com/macros/s/AKfycbwGCEDo7faBhEh9FCv1ZlrfINyAvfwIg9EbXk-CqwZRYBKVOQJP2hIGjI02JbeWIYJC5A/exec"; 
+      
+      // 🔹 THAY ĐỔI: Gửi toàn bộ records (bao gồm cả ghi chú)
+      const dataToSend = records
+      .slice(1)
+      .filter(r => !r[11]); // 🔹 chỉ lấy dòng chưa sync
+
+
+      if (dataToSend.length === 0) {
+        alert("⚠️ Không có dữ liệu để đồng bộ!");
+        return;
+      }
+
+      console.log("Dữ liệu gửi lên Google Sheets:", dataToSend); // Debug
+
+      fetch(sheetUrl, {
+        method: "POST",
+        body: JSON.stringify(dataToSend),
+        headers: { "Content-Type": "application/json" },
+        mode: "no-cors"
+      })
+      .then(() => {
+      alert("✅ Đã gửi dữ liệu lên Google Sheets");
+
+      // 🔹 Đánh dấu các dòng đã gửi
+      records = records.map(r => {
+        if (r[11] === false) r[11] = true;
+        return r;
+      });
+      saveLocal();
+
+      console.log("Đã đánh dấu synced:", records);
+    })
+
+      .catch(err => {
+        alert("❌ Lỗi đồng bộ: " + err);
+        console.error("Lỗi gửi dữ liệu:", err);
+      });
+    }
+    /* ===== Báo cáo cuối ca ===== */
+    function endShiftReport() {
+      let summary = {};
+      for (let i = 1; i < records.length; i++) {
+        if (records[i][8] === currentShift && records[i][9] === currentWO) {
+          let mahang = records[i][0];
+          let result = records[i][2];
+          let loi = records[i][3];
+
+          if (!summary[mahang]) {
+            summary[mahang] = { ok: 0, ng: 0, loiCount: {} };
+          }
+
+          if (result === "OK") {
+            summary[mahang].ok++;
+          } else if (result === "NG") {
+            summary[mahang].ng++;
+            summary[mahang].loiCount[loi] = (summary[mahang].loiCount[loi] || 0) + 1;
+          }
+        }
+      }
+
+      let report = `📊 Báo cáo ca ${currentShift} (WO: ${currentWO}):\n`;
+      for (let mahang in summary) {
+        let ok = summary[mahang].ok;
+        let ng = summary[mahang].ng;
+        let total = ok + ng;
+        let tyLeNG = total ? ((ng / total) * 100).toFixed(2) : 0;
+        let top3 = Object.entries(summary[mahang].loiCount)
+                         .sort((a,b)=>b[1]-a[1])
+                         .slice(0,3)
+                         .map(x => `${x[0]}(${x[1]})`)
+                         .join(", ") || "Không có";
+
+        report += `\n📦 Mã hàng: ${mahang}\n✅ OK: ${ok} | ❌ NG: ${ng} | 📉 Tỷ lệ NG: ${tyLeNG}%\n🔥 Top lỗi: ${top3}\n`;
+      }
+
+      alert(report);
+    }
+
+    /* ===== Chart ===== */
+    function updateChart() {
+      const canvas = document.getElementById("chartOKNG");
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext("2d");
+      if (chart) chart.destroy();
+      
+      try {
+        chart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["OK", "NG"],
+            datasets: [{
+              data: [okCount, ngCount],
+              backgroundColor: ["#2ecc71", "#e74c3c"]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "50%",
+            radius: "90%",
+            plugins: { 
+              legend: { 
+                position: "right",
+                labels: {
+                  usePointStyle: true,
+                  padding: 20
+                }
+              }
+            }
+          }
+        });
+      } catch(e) {
+        console.error("Lỗi khi tạo biểu đồ:", e);
+      }
+    }
+
+    /* ===== Xóa log chỉ UI ===== */
+    function clearLogDisplay() {
+      if (!confirm("Bạn có chắc muốn xóa bảng hiển thị? (Dữ liệu vẫn còn lưu trong bộ nhớ)")) return;
+      document.querySelector("#logTable tbody").innerHTML = "";
+      alert("✅ Đã xóa hiển thị log. Dữ liệu gốc vẫn còn!");
+    }
+
+    /* ===== Reset toàn bộ dữ liệu ===== */
+    function resetAllData() {
+      if (!confirm("⚠️ Bạn có chắc muốn XÓA TOÀN BỘ dữ liệu (records + bộ đếm)?")) return;
+
+      const backupKey = "backup_records_" + (new Date()).toISOString();
+      try {
+        localStorage.setItem(backupKey, JSON.stringify(records));
+        localStorage.setItem(backupKey + "_qr", JSON.stringify(qrCounter));
+      } catch(e) { console.warn("Backup thất bại:", e); }
+
+      records = [["Mã hàng","QR Code","Kết quả","Lỗi","Giờ","Ngày","Số lần xuất hiện","Người kiểm tra","Ca","WO","Ghi chú"]];
+      qrCounter = {};
+      okCount = 0; ngCount = 0;
+      saveLocal();
+
+      renderTable();
+      recomputeCountsForShift(currentShift || "");
+      alert("✅ Đã reset dữ liệu. Bản backup đã lưu vào localStorage với key: " + backupKey);
+    }
+
+    /* ===== Xóa 1 dòng ===== */
+    function deleteRecord(index) {
+      if (!confirm("Bạn có chắc muốn xóa dòng này?")) return;
+
+      index = Number(index);
+      if (isNaN(index) || index < 1 || index >= records.length) {
+        alert("Không tìm thấy bản ghi để xóa.");
+        return;
+      }
+
+      const removed = records.splice(index, 1)[0];
+      const removedQr = removed[1];
+      
+      // Tính lại counts sau khi xóa
+      recomputeCountsForShift(currentShift);
+      
+      saveLocal();
+      renderTable();
+    }
+    // ===== PHẦN BÁO CÁO & THỐNG KÊ =====
+    const API_URL = "https://script.google.com/macros/s/AKfycbwGCEDo7faBhEh9FCv1ZlrfINyAvfwIg9EbXk-CqwZRYBKVOQJP2hIGjI02JbeWIYJC5A/exec";
+    let allData = [];
+    let filteredDataGlobal = []; // 🔹 biến toàn cục lưu kết quả lọc
+    let paretoChart, dailyChart;
+    let clusterize = null;
+
+    function parseDateString(str){
+  if(!str) return null;
+  str = str.toString().trim();
+
+  // Định dạng dd/mm/yyyy hoặc dd-mm-yyyy
+  const m1 = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m1){
+    const d = parseInt(m1[1],10);
+    const m = parseInt(m1[2],10) - 1;
+    const y = parseInt(m1[3],10);
+    // 🔹 Tạo Date ở múi giờ local, không bị lùi ngày
+    const date = new Date(y, m, d, 12, 0, 0); // set 12:00 để tránh rớt múi giờ
+    return date;
+  }
+
+  // Định dạng yyyy-mm-dd
+  const m2 = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if(m2){
+    const y = parseInt(m2[1],10);
+    const m = parseInt(m2[2],10)-1;
+    const d = parseInt(m2[3],10);
+    return new Date(y,m,d,12,0,0);
+  }
+
+  // Nếu không khớp, thử parse thông thường
+  const d2 = new Date(str);
+  if(!isNaN(d2)) return new Date(d2.getFullYear(), d2.getMonth(), d2.getDate(), 12, 0, 0);
+
+  return null;
+}
+
+    function isoDate(d){
+      if (!(d instanceof Date) || isNaN(d)) return null;
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dd}`;
+    }
+
+    function populateFilters(data){
+      const maSPs = new Set();
+      const pos = new Set();
+      data.forEach(r=>{
+        if (r.maHang) maSPs.add(r.maHang);
+        if (r.po) pos.add(r.po);
+      });
+      fillSelect("maSP",maSPs);
+      fillSelect("po",pos);
+    }
+
+    function fillSelect(id, values){
+      const select = document.getElementById(id);
+      select.innerHTML = `<option value="">Tất cả</option>`;
+      values.forEach(v=>select.innerHTML+=`<option value="${v}">${v}</option>`);
+    }
+
+    function reloadFromGoogle(){
+      fetch(API_URL)
+        .then(res=>{
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data=>{
+          allData = data || [];
+          populateFilters(allData);
+          renderReportTable(allData);
+          
+          // Chỉ vẽ biểu đồ nếu có dữ liệu
+          if (allData.length > 0) {
+            setTimeout(() => {
+              drawPareto(allData);
+              drawDailyChart(allData);
+            }, 100);
+          }
+        })
+        .catch(err=>{
+          console.error("Không lấy được dữ liệu:", err);
+          alert("❌ Không lấy được dữ liệu: " + err.message);
+        });
+    }
+
+    function applyFilters() {
+      window.preventAutoReload = true;
+      const searchQR = document.getElementById("searchQR").value.trim().toUpperCase();
+      const fromDate = document.getElementById("fromDate").value;
+      const toDate = document.getElementById("toDate").value;
+      const maSP = document.getElementById("maSP").value;
+      const po = document.getElementById("po").value;
+
+      // 🔹 Lọc dữ liệu từ allData
+      filteredDataGlobal = allData.filter(r => {
+        let match = true;
+
+        const qrValue =
+          r["QR Code"] || r["Qr code"] || r["QR code"] || r.qrCode || r.qr || "";
+        const maHangValue = r["Mã hàng"] || r.maHang || "";
+        const poValue = r["PO"] || r.po || "";
+        const ngayStr = r["Ngày"] || r.ngay;
+        const ngay = parseDateString(ngayStr);
+
+        if (searchQR && !qrValue.toString().toUpperCase().includes(searchQR)) match = false;
+        if (maSP && maHangValue !== maSP) match = false;
+        if (po && poValue !== po) match = false;
+
+        if (fromDate && ngay < new Date(fromDate)) match = false;
+        if (toDate) {
+      const to = new Date(toDate);
+      to.setHours(23, 59, 59, 999); // ✅ mở rộng tới cuối ngày
+      if (ngay > to) match = false;
+    }
+
+        return match;
+      });
+
+      renderReportTable(filteredDataGlobal);
+      
+      // 🔥 SỬA: Vẽ biểu đồ với dữ liệu đã lọc
+      drawPareto(filteredDataGlobal);
+      drawDailyChart(filteredDataGlobal);
+      
+      alert(`✅ Đã lọc được ${filteredDataGlobal.length} dòng. Biểu đồ đã được cập nhật!`);
+    }
+
+
+    function renderReportTable(data) {
+      const rows = data.map(r => {
+  // Lấy giá trị giờ/ngày
+  let gioRaw = r["Giờ"] || r.gio || "";
+  let ngayRaw = r["Ngày"] || r.ngay || "";
+
+  // Chuyển định dạng ISO -> giờ/ngày VN nếu có
+  function formatDateTime(value, type="date") {
+    if (!value) return "";
+    try {
+      const d = new Date(value);
+      if (isNaN(d)) return value;
+      if (type === "time") return d.toLocaleTimeString("vi-VN", { hour12: false });
+      return d.toLocaleDateString("vi-VN");
+    } catch {
+      return value;
+    }
+  }
+
+  const gio = formatDateTime(gioRaw, "time");
+  const ngay = formatDateTime(ngayRaw, "date");
+
+  return `
+    <tr>
+      <td>${r["Mã hàng"] || r.maHang || ""}</td>
+      <td>${r["QR code"] || r.qrCode || ""}</td>
+      <td>${r["Phán định"] || r.phanDinh || ""}</td>
+      <td>${r["Mô tả lỗi"] || r.moTaLoi || ""}</td>
+      <td>${gio}</td>
+      <td>${ngay}</td>
+      <td>${r["Số lần xuất hiện"] || r.soLan || ""}</td>
+      <td>${r["Mã Nhân Viên"] || r.maNV || r.User || ""}</td>
+      <td>${r["Ca làm việc"] || r.caLam || r.Shift || ""}</td>
+      <td>${r["PO"] || r.po || ""}</td>
+      <td>${r["Ghi chú"] || r.ghichu || ""}</td>
+    </tr>
+  `;
+});
+
+      if (!clusterize) {
+        clusterize = new Clusterize({
+          rows: rows,
+          scrollId: 'scrollArea',
+          contentId: 'clusterize-content'
+        });
+      } else {
+        clusterize.update(rows);
+      }
+
+      const info = document.getElementById("recordCount");
+      if (info) info.textContent = `Tổng: ${data.length} dòng`;
+    }
+    
+    function filterChartsByDate() {
+  const from = document.getElementById("chartFrom").value;
+  const to = document.getElementById("chartTo").value;
+
+  if (!from && !to) {
+    drawPareto(allData);
+    drawDailyChart(allData);
+    return;
+  }
+
+  const filtered = allData.filter(r => {
+    const ngayStr = r["Ngày"] || r.ngay;
+    const ngay = parseDateString(ngayStr);
+    if (!ngay) return false;
+    if (from && ngay < new Date(from)) return false;
+    if (to && ngay > new Date(to)) return false;
+    return true;
+  });
+
+  drawPareto(filtered);
+  drawDailyChart(filtered);
+}
+
+    function drawPareto(data){
+      const canvas = document.getElementById("paretoChart");
+      if (!canvas) {
+        console.error("Không tìm thấy canvas paretoChart");
+        return;
+      }
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        console.error("Không thể lấy context từ canvas");
+        return;
+      }
+
+      // 🔥 SỬA: Dùng tham số 'data' thay vì 'allData'
+      const loiCount = {};
+      data.forEach(r=>{
+        const moTaLoi = r["Mô tả lỗi"] || r.moTaLoi || "";
+        const phanDinh = r["Phán định"] || r.phanDinh || "";
+        
+        if (moTaLoi && phanDinh === "NG") {
+          loiCount[moTaLoi] = (loiCount[moTaLoi] || 0) + 1;
+        }
+      });
+      
+      const loiSorted = Object.entries(loiCount).sort((a,b)=>b[1]-a[1]);
+      const labels = loiSorted.map(x=>x[0]);
+      const values = loiSorted.map(x=>x[1]);
+      const total = values.reduce((a,b)=>a+b,0);
+      const cumsum = values.map((sum=>v=>sum+=v)(0));
+      const cumPerc = cumsum.map(s=>(s/total*100).toFixed(1));
+
+      // Hủy biểu đồ cũ nếu tồn tại
+      if (paretoChart) {
+        try {
+          paretoChart.destroy();
+        } catch(e) {
+          console.warn("Lỗi khi destroy paretoChart cũ:", e);
+        }
+      }
+
+      try {
+        paretoChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [{
+              label: "Số lỗi",
+              data: values,
+              backgroundColor: "#3498db",
+              order: 2
+            },{
+              label: "Tỷ lệ tích lũy (%)",
+              data: cumPerc,
+              type: "line",
+              borderColor: "#e74c3c",
+              backgroundColor: "rgba(231,76,60,0.1)",
+              fill: true,
+              yAxisID: "y1",
+              order: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: "Số lỗi" }
+              },
+              y1: {
+                position: "right",
+                beginAtZero: true,
+                max: 100,
+                title: { display: true, text: "Tỷ lệ %" },
+                grid: { drawOnChartArea: false }
+              }
+            }
+          }
+        });
+      } catch(e) {
+        console.error("Lỗi khi tạo paretoChart:", e);
+      }
+    }
+
+    function drawDailyChart(data) {
+      const canvas = document.getElementById("dailyChart");
+      if (!canvas) {
+        console.error("Không tìm thấy canvas dailyChart");
+        return;
+      }
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        console.error("Không thể lấy context từ canvas");
+        return;
+      }
+
+      const dailyCount = {};
+      let minDate = null, maxDate = null;
+
+      // 🔥 SỬA: Dùng tham số 'data' và xử lý tên cột đúng
+      data.forEach(r => {
+        const ngayStr = r["Ngày"] || r.ngay;
+        const phanDinh = r["Phán định"] || r.phanDinh || "";
+        
+        if (ngayStr) {
+          const d = parseDateString(ngayStr);
+          if (d) {
+            if (!minDate || d < minDate) minDate = d;
+            if (!maxDate || d > maxDate) maxDate = d;
+
+            const iso = isoDate(d);
+            if (!dailyCount[iso]) dailyCount[iso] = { ok: 0, ng: 0 };
+            if (phanDinh === "OK") dailyCount[iso].ok++;
+            else if (phanDinh === "NG") dailyCount[iso].ng++;
+          }
+        }
+      });
+
+      // Sinh danh sách ngày liên tục
+      const dates = [];
+      if (minDate && maxDate) {
+        let cur = new Date(minDate);
+        while (cur <= maxDate) {
+          dates.push(isoDate(cur));
+          cur.setDate(cur.getDate() + 1);
+        }
+      }
+
+      // Tính dữ liệu theo ngày
+      const okData = dates.map(d => dailyCount[d]?.ok || 0);
+      const ngData = dates.map(d => dailyCount[d]?.ng || 0);
+      const totalData = dates.map(d => (dailyCount[d]?.ok || 0) + (dailyCount[d]?.ng || 0));
+
+      // 🔹 Tính tỷ lệ % NG/Tổng
+      const percNG = dates.map(d => {
+        const total = (dailyCount[d]?.ok || 0) + (dailyCount[d]?.ng || 0);
+        return total > 0 ? ((dailyCount[d].ng / total) * 100).toFixed(2) : 0;
+      });
+
+      // Hủy biểu đồ cũ nếu tồn tại
+      if (dailyChart) {
+        try {
+          dailyChart.destroy();
+        } catch(e) {
+          console.warn("Lỗi khi destroy dailyChart cũ:", e);
+        }
+      }
+
+      try {
+        dailyChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: dates,
+            datasets: [
+              {
+                label: "Tổng số lượng",
+                data: totalData,
+                backgroundColor: "#2ecc71",
+                yAxisID: "y",
+              },
+              {
+                label: "NG",
+                data: ngData,
+                backgroundColor: "#e74c3c",
+                yAxisID: "y",
+              },
+              {
+                label: "% NG/Tổng",
+                data: percNG,
+                type: "line",
+                borderColor: "#2980b9",
+                backgroundColor: "rgba(52,152,219,0.1)",
+                yAxisID: "y1",
+                tension: 0.3,
+                fill: false,
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: "Số lượng" }
+              },
+              y1: {
+                position: "right",
+                beginAtZero: true,
+                max: 100,
+                title: { display: true, text: "% NG" },
+                grid: { drawOnChartArea: false }
+              },
+              x: {
+                title: { display: true, text: "Ngày" }
+              }
+            }
+          }
+        });
+      } catch(e) {
+        console.error("Lỗi khi tạo dailyChart:", e);
+      }
+    }
+
+    // Khởi tạo biểu đồ khi trang được tải
+    window.onload = function() {
+      // Tính toán lại counts từ records hiện có
+      recomputeCountsForShift(currentShift || "");
+      renderTable();
+      updateChart();
+
+      // 🔹 Gắn sự kiện cho ô số lượng giao
+      document.getElementById("deliveryQty").addEventListener("input", ()=>{
+        deliveryTarget = parseInt(document.getElementById("deliveryQty").value) || 0;
+        deliveryCounter = 0; // reset bộ đếm mỗi khi nhập số mới
+        if (deliveryTarget > 0) {
+          document.getElementById("deliveryStatus").textContent = `🔄 Đã đặt mục tiêu: ${deliveryTarget}`;
+        } else {
+          document.getElementById("deliveryStatus").textContent = "";
+        }
+      });
+
+      // 🔹 Lắng nghe khi có thay đổi localStorage từ tab khác
+      window.addEventListener("storage", (event) => {
+        if (event.key === "records") {
+          records = JSON.parse(event.newValue || "[]");
+          renderTable();
+          recomputeCountsForShift(currentShift || "");
+        }
+      });
+    }
+  </script>
+</body>
+</html>
