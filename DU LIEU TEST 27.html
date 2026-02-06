@@ -162,6 +162,7 @@
             <option value="CAS MINI-485">CAS MINI-485</option>
             <option value="BN 2573A">BN 2573A</option>
             <option value="OEM">OEM</option>
+           
             
           </select>
           <p id="qrcodeLengthInfo" style="font-size: 12px; color: #666; margin-top: -5px; margin-bottom: 10px;"></p>
@@ -195,8 +196,12 @@
             <option value="NTC1">NTC1</option>
             <option value="NTC2">NTC2</option>
             <option value="TOP AFE">TOP AFE</option>
-          </datalist>
-
+            <option value="KHÔNG SÁNG LED">KHÔNG SÁNG LED</option>
+            <option value="SIGNAL FAIL">SIGNAL FAIL</option>
+            <option value="LỖI ???">LỖI ???</option>
+            <option value="KHÔNG NHẬN SIM">KHÔNG NHẬN SIM</option>
+            <option value="KÊNH USB">KÊNH USB</option>
+            <option value="LỖI MCU">LỖI MCU</option>
           <div>
             <button id="okBtn" onclick="saveData('OK')">OK</button>
             <button id="ngBtn" onclick="saveData('NG')">NG</button>
@@ -367,7 +372,6 @@
       "5651": "565111", // CHAU
       "5531": "553111", // GIANG
       "5019": "501911", // GIANG
-      "5649": "564911", // LONG
     };
     // Quy định số ký tự tối đa cho từng mã hàng
       const maxLengthByProduct = {
@@ -384,9 +388,9 @@
   "BMS 85AH": 27,
   "BMS 57AH": 27,
   "CONTROLLER": 27,
-  "CAS NEMO": 12,
-  "CAS MINI-DI": 15,
-  "CAS MINI-485": 15,
+  "CAS NEMO": 31,
+  "CAS MINI-DI": 31,
+  "CAS MINI-485": 31,
   "BN 2573A": 12,
   "OEM": 20
     };
@@ -1327,5 +1331,4 @@ function checkIfHasPreviousNG(qrcode, currentIndex) {
     }
   </script>
 </body>
-
 </html>
